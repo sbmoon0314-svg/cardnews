@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>카드뉴스 공장</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0e0f;--surface:#17171a;--surface2:#1f1f23;--surface3:#27272b;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#f0f0f0;--text2:#888;--text3:#444;
+  --accent:#7c6df0;--accent2:#a594f9;
+  --green:#22c88a;--red:#e05252;--amber:#e8a430;
+  --r:10px;--rlg:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans','Noto Sans KR',sans-serif;font-size:14px;line-height:1.6;overflow:hidden}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.app{display:grid;grid-template-rows:52px 1fr;height:100vh}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-mark{width:26px;height:26px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.logo-text{font-size:14px;font-weight:500;letter-spacing:-.3px}
+.lang-sw{display:flex;gap:2px;background:var(--surface2);border-radius:8px;padding:3px}
+.lang-btn{padding:3px 10px;border-radius:5px;border:none;background:transparent;color:var(--text2);font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s}
+.lang-btn.on{background:var(--accent);color:#fff}
+.body{display:grid;grid-template-columns:280px 1fr 260px;overflow:hidden}
+.panel{padding:16px;overflow-y:auto;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:12px}
+.panel:last-child{border-right:none;border-left:1px solid var(--border)}
+.plbl{font-size:10px;font-weight:500;color:var(--text3);letter-spacing:.1em;text-transform:uppercase}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:11px;color:var(--text2);font-weight:500}
+input[type=text],textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:13px;border-radius:var(--r);padding:8px 11px;outline:none;transition:border-color .15s;resize:none}
+input[type=text]:focus,textarea:focus{border-color:var(--accent)}
+textarea{min-height:110px;line-height:1.7}
+.btn{width:100%;padding:9px;border-radius:var(--r);border:none;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:#6b5de0}
+.btn-accent:disabled{opacity:.4;cursor:not-allowed}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:#1aad78}
+.btn-green:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface3)}
+.btn-ghost:disabled{opacity:.4;cursor:not-allowed}
+.btn-sm{padding:6px 12px;font-size:12px;width:auto}
+.btn-row{display:flex;gap:7px}
+.btn-row .btn{flex:1}
+.upload-zone{border:1.5px dashed var(--border2);border-radius:var(--rlg);padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2);position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(124,109,240,0.08)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:22px;margin-bottom:5px;opacity:.4}
+.upload-text{font-size:11px;color:var(--text2);line-height:1.5}
+.img-preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.img-thumb{aspect-ratio:1;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:all .15s;position:relative}
+.img-thumb.selected{border-color:var(--accent)}
+.img-thumb img{width:100%;height:100%;object-fit:cover}
+.img-thumb .del{position:absolute;top:3px;right:3px;width:16px;height:16px;background:rgba(0,0,0,.7);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;cursor:pointer;opacity:0;transition:opacity .15s}
+.img-thumb:hover .del{opacity:1}
+.tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.tpl-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 7px;cursor:pointer;text-align:center;transition:all .15s}
+.tpl-card:hover{border-color:var(--border2)}
+.tpl-card.on{border-color:var(--accent);background:rgba(124,109,240,.12)}
+.tpl-card-name{font-size:11px;font-weight:500;margin-bottom:1px}
+.tpl-card-desc{font-size:10px;color:var(--text3)}
+.color-row{display:flex;gap:6px;flex-wrap:wrap}
+.swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
+.swatch:hover{transform:scale(1.1)}
+.swatch.on{border-color:#fff;transform:scale(1.12)}
+.overlay-row{display:flex;gap:5px}
+.ov-btn{flex:1;padding:6px 4px;border-radius:7px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);text-align:center;transition:all .15s}
+.ov-btn.on{border-color:var(--accent);background:rgba(124,109,240,.12);color:var(--accent2)}
+.pos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.pos-btn{padding:6px 4px;border-radius:6px;font-size:10px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);text-align:center;transition:all .15s}
+.pos-btn.on{border-color:var(--accent);background:rgba(124,109,240,.12);color:var(--accent2)}
+.fs-row{display:flex;align-items:center;gap:8px}
+.fs-row input[type=range]{flex:1;accent-color:var(--accent)}
+.fs-val{font-size:12px;color:var(--text2);min-width:24px;text-align:right}
+hr{border:none;border-top:1px solid var(--border);margin:0}
+.status{font-size:11px;text-align:center;min-height:14px;padding:3px 8px;border-radius:6px}
+.status.ok{color:var(--green)}
+.status.err{color:var(--red)}
+.status.loading{color:var(--amber)}
+.canvas-area{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:24px;gap:16px;overflow:hidden}
+.slide-box{width:460px;height:460px;border-radius:16px;overflow:hidden;position:relative;background:var(--surface2);flex-shrink:0}
+.slide-nav-row{display:flex;align-items:center;gap:12px}
+.slide-dots{display:flex;gap:5px}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--border2);cursor:pointer;transition:all .15s}
+.sdot.on{background:var(--accent);width:18px;border-radius:3px}
+.nav-arr{width:32px;height:32px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.nav-arr:hover{background:var(--surface2)}
+.slide-ctr{font-size:11px;color:var(--text2);min-width:48px;text-align:center}
+.exp-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px}
+.exp-card-title{font-size:12px;font-weight:500;margin-bottom:3px}
+.exp-card-desc{font-size:11px;color:var(--text2);margin-bottom:9px;line-height:1.5}
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hdr">
+    <div class="logo">
+      <div class="logo-mark">CF</div>
+      <div class="logo-text" id="hTitle">카드뉴스 공장</div>
+    </div>
+    <div class="lang-sw">
+      <button class="lang-btn on" onclick="setLang('ko')">한국어</button>
+      <button class="lang-btn" onclick="setLang('ja')">日本語</button>
+      <button class="lang-btn" onclick="setLang('en')">English</button>
+    </div>
+  </header>
+  <div class="body">
+    <div class="panel">
+      <div class="plbl">콘텐츠</div>
+      <div class="fg">
+        <label id="lt">주제</label>
+        <input type="text" id="topic" placeholder="예: 봄철 피부 관리법" value="봄철 피부 관리 5가지">
+      </div>
+      <div class="fg">
+        <label id="ls">슬라이드 문구 <span style="color:var(--text3);font-weight:400">(줄바꿈 = 각 슬라이드)</span></label>
+        <textarea id="content">봄이 오면 피부가 말라요
+수분 크림, 아침·저녁 듬뿍
+자외선 차단제는 365일
+각질 제거는 주 1~2회만
+내 피부가 빛나는 봄</textarea>
+      </div>
+      <button class="btn btn-green" onclick="aiGenerate()" id="aibtn">AI 문구 자동 생성</button>
+      <div class="status" id="aiSt"></div>
+      <hr>
+      <div class="fg">
+        <label>브랜드명 <span style="color:var(--text3);font-weight:400">(선택)</span></label>
+        <input type="text" id="brand" placeholder="예: HAETAE">
+      </div>
+      <button class="btn btn-accent" onclick="buildSlides()" id="genbtn">카드뉴스 생성</button>
+      <div class="status" id="genSt"></div>
+    </div>
+
+    <div class="canvas-area">
+      <div class="slide-box" id="slideBox">
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px" id="emptyMsg">이미지를 업로드하고 생성 버튼을 누르세요</div>
+      </div>
+      <div class="slide-nav-row">
+        <button class="nav-arr" onclick="prevSlide()">&#8592;</button>
+        <div class="slide-dots" id="dots"></div>
+        <span class="slide-ctr" id="ctr"></span>
+        <button class="nav-arr" onclick="nextSlide()">&#8594;</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="plbl">디자인</div>
+      <div class="fg">
+        <label>이미지 업로드</label>
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" accept="image/*" multiple onchange="handleFiles(this.files)">
+          <div class="upload-icon">+</div>
+          <div class="upload-text">클릭하거나 이미지를 드래그해서 올리세요<br><span style="font-size:10px;color:var(--text3)">여러 장 가능 · JPG, PNG, WEBP</span></div>
+        </div>
+        <div class="img-preview-grid" id="imgGrid"></div>
+      </div>
+      <hr>
+      <div class="fg">
+        <label>템플릿</label>
+        <div class="tpl-grid" id="tplGrid"></div>
+      </div>
+      <div class="fg">
+        <label>컬러 테마</label>
+        <div class="color-row" id="colorRow"></div>
+      </div>
+      <div class="fg">
+        <label>이미지 오버레이</label>
+        <div class="overlay-row" id="ovRow"></div>
+      </div>
+      <div class="fg">
+        <label>텍스트 위치</label>
+        <div class="pos-grid" id="posGrid"></div>
+      </div>
+      <div class="fg">
+        <label>텍스트 크기</label>
+        <div class="fs-row">
+          <input type="range" id="fsRange" min="16" max="42" value="26" step="1" oninput="fsChange(this.value)">
+          <span class="fs-val" id="fsVal">26</span>
+        </div>
+      </div>
+      <hr>
+      <div class="plbl">내보내기</div>
+      <div class="exp-card">
+        <div class="exp-card-title">PNG 개별 저장</div>
+        <div class="exp-card-desc">슬라이드 한 장씩 고해상도 PNG로 저장. 인스타 바로 업로드 가능.</div>
+        <button class="btn btn-ghost btn-sm" onclick="exportAllPNG()" id="expPngBtn">전체 저장</button>
+      </div>
+      <div class="exp-card">
+        <div class="exp-card-title">HTML 저장</div>
+        <div class="exp-card-desc">전체 슬라이드를 HTML 파일로 저장합니다.</div>
+        <button class="btn btn-ghost btn-sm" onclick="exportHTML()">다운로드</button>
+      </div>
+      <div class="status" id="dlSt"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const TEMPLATES=[
+  {id:'minimal',n:{ko:'미니멀',ja:'ミニマル',en:'Minimal'},d:{ko:'깔끔·여백',ja:'シンプル',en:'Clean'}},
+  {id:'bold',n:{ko:'볼드',ja:'ボールド',en:'Bold'},d:{ko:'강렬·임팩트',ja:'インパクト',en:'Impact'}},
+  {id:'story',n:{ko:'스토리',ja:'ストーリー',en:'Story'},d:{ko:'감성·인용구',ja:'感性的',en:'Emotional'}},
+  {id:'split',n:{ko:'분할',ja:'スプリット',en:'Split'},d:{ko:'좌우 레이아웃',ja:'左右',en:'Two-col'}},
+  {id:'center',n:{ko:'센터',ja:'センター',en:'Center'},d:{ko:'중앙 정렬',ja:'中央',en:'Centered'}},
+  {id:'quote',n:{ko:'인용구',ja:'引用',en:'Quote'},d:{ko:'큰 따옴표',ja:'クォート',en:'Quote'}},
+];
+const COLORS=[
+  {bg:'#534AB7',accent:'#AFA9EC',sub:'#EEEDFE'},
+  {bg:'#D85A30',accent:'#F0997B',sub:'#FAECE7'},
+  {bg:'#1D9E75',accent:'#5DCAA5',sub:'#E1F5EE'},
+  {bg:'#D4537E',accent:'#ED93B1',sub:'#FBEAF0'},
+  {bg:'#185FA5',accent:'#85B7EB',sub:'#E6F1FB'},
+  {bg:'#BA7517',accent:'#EF9F27',sub:'#FAEEDA'},
+  {bg:'#2C2C2A',accent:'#888780',sub:'#F1EFE8'},
+  {bg:'#C8A96E',accent:'#E8D5B0',sub:'#FDF6E9'},
+];
+const OV_VALS=['none','dark','light','blur'];
+const OV_LABELS={ko:['없음','어둡게','밝게','블러'],ja:['なし','暗く','明るく','ぼかし'],en:['None','Dark','Light','Blur']};
+const POS_VALS=['TL','TC','TR','ML','MC','MR','BL','BC','BR'];
+const POS_LABELS={ko:['좌상','중상','우상','좌중','중앙','우중','좌하','중하','우하'],ja:['左上','中上','右上','左中','中央','右中','左下','中下','右下'],en:['TL','TC','TR','ML','MC','MR','BL','BC','BR']};
+const AI_PROMPTS={
+  ko:(t)=>`카드뉴스 주제: "${t}"\n\nInstagram 카드뉴스용 슬라이드 문구 5개를 만들어줘.\n규칙:\n- 각 줄 = 슬라이드 1장, 18자 이내\n- 1번: 공감/후킹\n- 2~4번: 숫자/키워드 포함 핵심 정보\n- 5번: 마무리/행동 유도\n- 5줄만, JSON 없이 줄바꿈으로 구분`,
+  ja:(t)=>`テーマ: "${t}"\n\nInstagramカードニュース用スライドテキスト5枚を作成。\n- 1行=1スライド、20文字以内\n- 5行のみ出力`,
+  en:(t)=>`Topic: "${t}"\n\nCreate 5 Instagram card news slide captions. 1 line per slide, under 60 chars. 5 lines only, no JSON.`,
+};
+
+let lang='ko',curTpl='minimal',curColor=0,curSlide=0,slides=[],uploadedImgs=[],curOv='dark',curPos='BL',fontSize=26;
+
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach((b,i)=>b.classList.toggle('on',['ko','ja','en'][i]===l));
+  rebuildAll();
+}
+
+function rebuildAll(){rebuildTpls();rebuildOv();rebuildPos();}
+
+function rebuildTpls(){
+  const g=document.getElementById('tplGrid');g.innerHTML='';
+  TEMPLATES.forEach(t=>{
+    const b=document.createElement('div');
+    b.className='tpl-card'+(t.id===curTpl?' on':'');
+    b.innerHTML=`<div class="tpl-card-name">${t.n[lang]}</div><div class="tpl-card-desc">${t.d[lang]}</div>`;
+    b.onclick=()=>{curTpl=t.id;document.querySelectorAll('.tpl-card').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderSlide()};
+    g.appendChild(b);
+  });
+}
+
+function initColors(){
+  const cr=document.getElementById('colorRow');cr.innerHTML='';
+  COLORS.forEach((c,i)=>{
+    const d=document.createElement('div');
+    d.className='swatch'+(i===curColor?' on':'');
+    d.style.background=c.bg;
+    d.onclick=()=>{curColor=i;document.querySelectorAll('.swatch').forEach(x=>x.classList.remove('on'));d.classList.add('on');renderSlide()};
+    cr.appendChild(d);
+  });
+}
+
+function rebuildOv(){
+  const r=document.getElementById('ovRow');r.innerHTML='';
+  OV_LABELS[lang].forEach((label,i)=>{
+    const b=document.createElement('div');
+    b.className='ov-btn'+(OV_VALS[i]===curOv?' on':'');
+    b.textContent=label;
+    b.onclick=()=>{curOv=OV_VALS[i];document.querySelectorAll('.ov-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderSlide()};
+    r.appendChild(b);
+  });
+}
+
+function rebuildPos(){
+  const g=document.getElementById('posGrid');g.innerHTML='';
+  POS_LABELS[lang].forEach((label,i)=>{
+    const b=document.createElement('div');
+    b.className='pos-btn'+(POS_VALS[i]===curPos?' on':'');
+    b.textContent=label;
+    b.onclick=()=>{curPos=POS_VALS[i];document.querySelectorAll('.pos-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderSlide()};
+    g.appendChild(b);
+  });
+}
+
+function fsChange(v){fontSize=parseInt(v);document.getElementById('fsVal').textContent=v;renderSlide();}
+
+function handleFiles(files){
+  for(const f of files){
+    if(!f.type.startsWith('image/'))continue;
+    const reader=new FileReader();
+    reader.onload=e=>{uploadedImgs.push(e.target.result);renderImgGrid();};
+    reader.readAsDataURL(f);
+  }
+}
+
+function renderImgGrid(){
+  const g=document.getElementById('imgGrid');g.innerHTML='';
+  uploadedImgs.forEach((src,i)=>{
+    const d=document.createElement('div');
+    d.className='img-thumb';
+    d.innerHTML=`<img src="${src}"><div class="del" onclick="delImg(${i},event)">x</div>`;
+    g.appendChild(d);
+  });
+}
+
+function delImg(i,e){
+  e.stopPropagation();
+  uploadedImgs.splice(i,1);
+  renderImgGrid();
+  if(slides.length)buildSlides();
+}
+
+const uz=document.getElementById('uploadZone');
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag')});
+uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
+uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('drag');handleFiles(e.dataTransfer.files)});
+
+function buildSlides(){
+  const lines=document.getElementById('content').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const topic=document.getElementById('topic').value.trim();
+  const brand=document.getElementById('brand').value.trim();
+  if(!lines.length)return;
+  slides=lines.map((line,i)=>({index:i,total:lines.length,topic,line,brand,imgSrc:uploadedImgs.length?uploadedImgs[i%uploadedImgs.length]:'',isFirst:i===0,isLast:i===lines.length-1}));
+  curSlide=0;
+  renderSlide();renderDots();
+  document.getElementById('ctr').textContent=`1 / ${slides.length}`;
+  document.getElementById('genSt').className='status ok';
+  document.getElementById('genSt').textContent={ko:'생성 완료!',ja:'生成完了！',en:'Done!'}[lang];
+}
+
+function renderSlide(){
+  const box=document.getElementById('slideBox');
+  if(!slides.length){box.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px">${{ko:'이미지를 업로드하고 생성 버튼을 누르세요',ja:'画像をアップロードして生成ボタンを押してください',en:'Upload images and press Generate'}[lang]}</div>`;return;}
+  box.innerHTML=buildSlideHTML(slides[curSlide],COLORS[curColor],curTpl,curOv,curPos,fontSize);
+}
+
+function renderDots(){
+  const d=document.getElementById('dots');d.innerHTML='';
+  slides.forEach((_,i)=>{
+    const dot=document.createElement('div');
+    dot.className='sdot'+(i===curSlide?' on':'');
+    dot.onclick=()=>{curSlide=i;renderSlide();renderDots();document.getElementById('ctr').textContent=`${i+1} / ${slides.length}`;};
+    d.appendChild(dot);
+  });
+}
+
+function prevSlide(){if(curSlide>0){curSlide--;renderSlide();renderDots();document.getElementById('ctr').textContent=`${curSlide+1} / ${slides.length}`;}}
+function nextSlide(){if(curSlide<slides.length-1){curSlide++;renderSlide();renderDots();document.getElementById('ctr').textContent=`${curSlide+1} / ${slides.length}`;}}
+
+function getPosStyle(pos){
+  const map={
+    TL:'top:0;left:0;right:0;bottom:0;align-items:flex-start;justify-content:flex-start;text-align:left;padding:28px',
+    TC:'top:0;left:0;right:0;bottom:0;align-items:flex-start;justify-content:center;text-align:center;padding:28px',
+    TR:'top:0;left:0;right:0;bottom:0;align-items:flex-start;justify-content:flex-end;text-align:right;padding:28px',
+    ML:'top:0;left:0;right:0;bottom:0;align-items:center;justify-content:flex-start;text-align:left;padding:28px',
+    MC:'top:0;left:0;right:0;bottom:0;align-items:center;justify-content:center;text-align:center;padding:28px',
+    MR:'top:0;left:0;right:0;bottom:0;align-items:center;justify-content:flex-end;text-align:right;padding:28px',
+    BL:'top:0;left:0;right:0;bottom:0;align-items:flex-end;justify-content:flex-start;text-align:left;padding:28px',
+    BC:'top:0;left:0;right:0;bottom:0;align-items:flex-end;justify-content:center;text-align:center;padding:28px',
+    BR:'top:0;left:0;right:0;bottom:0;align-items:flex-end;justify-content:flex-end;text-align:right;padding:28px',
+  };
+  return map[pos]||map.BL;
+}
+
+function buildSlideHTML(s,c,tpl,ov,pos,fs){
+  const num=`${String(s.index+1).padStart(2,'0')} / ${String(s.total).padStart(2,'0')}`;
+  const hasImg=!!s.imgSrc;
+  let ovHtml='';
+  if(ov==='dark')ovHtml=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.48)"></div>`;
+  else if(ov==='light')ovHtml=`<div style="position:absolute;inset:0;background:rgba(255,255,255,0.38)"></div>`;
+  else if(ov==='blur')ovHtml=`<div style="position:absolute;inset:0;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)"></div>`;
+  const imgBg=hasImg?`<div style="position:absolute;inset:0;background:url('${s.imgSrc}') center/cover no-repeat"></div>`:'';
+  const ps=getPosStyle(pos);
+  const tc=hasImg&&ov==='light'?'#1a1a1a':'#fff';
+
+  const tpls={
+    minimal:`<div style="width:100%;height:100%;position:relative;overflow:hidden;background:${hasImg?'#111':c.sub}">${imgBg}${ovHtml}<div style="position:absolute;${ps};display:flex;flex-direction:column"><div style="font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${hasImg?c.accent:c.bg};margin-bottom:10px">${s.topic}</div><div style="font-size:${fs}px;font-weight:400;color:${hasImg?tc:'#1a1a1a'};line-height:1.3;margin-bottom:16px">${s.line}</div><div style="display:flex;align-items:center;gap:10px"><div style="width:24px;height:2px;background:${hasImg?c.accent:c.bg}"></div><div style="font-size:10px;color:${hasImg?'rgba(255,255,255,.5)':'#aaa'}">${num}${s.brand?' · '+s.brand:''}</div></div></div></div>`,
+    bold:`<div style="width:100%;height:100%;position:relative;overflow:hidden;background:${hasImg?'#111':c.bg}">${imgBg}${ovHtml}<div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:26px"><div style="display:flex;justify-content:space-between"><div style="font-size:9px;color:${c.accent};letter-spacing:.14em;text-transform:uppercase">${s.topic}</div><div style="font-size:10px;color:${c.accent};opacity:.6">${num}</div></div><div><div style="font-size:${fs}px;font-weight:500;color:#fff;line-height:1.2;margin-bottom:10px">${s.line}</div>${s.brand?`<div style="font-size:10px;color:${c.accent}">${s.brand}</div>`:''}</div></div></div>`,
+    story:`<div style="width:100%;height:100%;position:relative;overflow:hidden;background:${hasImg?'#111':'#faf8f5'}">${imgBg}${ovHtml}<div style="position:absolute;${ps};display:flex;flex-direction:column"><div style="font-size:9px;color:${hasImg?c.accent:c.bg};letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px">${s.isFirst?s.topic:num}</div><div style="font-size:${Math.min(fs,28)}px;color:${hasImg?tc:'#1a1a1a'};line-height:1.5;margin-bottom:14px;font-style:italic;font-weight:300">${s.line}</div><div style="width:18px;height:1.5px;background:${hasImg?c.accent:c.bg};opacity:.6;margin-bottom:8px"></div>${s.brand?`<div style="font-size:10px;color:${hasImg?'rgba(255,255,255,.5)':'#aaa'}">${s.brand}</div>`:''}</div></div>`,
+    split:`<div style="width:100%;height:100%;display:flex;overflow:hidden"><div style="width:40%;position:relative;overflow:hidden;background:${c.bg}">${imgBg}<div style="position:absolute;inset:0;background:${c.bg};opacity:${hasImg?.75:1}"></div><div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:22px"><div style="font-size:40px;font-weight:700;color:rgba(255,255,255,.1);line-height:1;margin-bottom:-14px">0${s.index+1}</div><div style="font-size:36px;font-weight:500;color:#fff;line-height:1">${s.index+1}</div><div style="width:14px;height:2px;background:${c.accent};margin:10px 0"></div><div style="font-size:9px;color:${c.accent};letter-spacing:.1em;text-transform:uppercase">${s.topic}</div></div></div><div style="flex:1;background:${hasImg?'#111':c.sub};display:flex;flex-direction:column;justify-content:center;padding:22px;position:relative">${hasImg?`<div style="position:absolute;inset:0;background:url('${s.imgSrc}') center/cover;opacity:.2"></div>`:''}<div style="position:relative;font-size:${Math.min(fs,22)}px;color:${hasImg?'#fff':'#1a1a1a'};line-height:1.45;margin-bottom:12px">${s.line}</div><div style="position:relative;font-size:10px;color:${hasImg?'rgba(255,255,255,.4)':'#aaa'}">${num}${s.brand?' · '+s.brand:''}</div></div></div>`,
+    center:`<div style="width:100%;height:100%;position:relative;overflow:hidden;background:${hasImg?'#111':c.sub}">${imgBg}${ovHtml}<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px"><div style="width:42px;height:42px;border-radius:50%;background:${c.bg};display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:16px;font-weight:500;color:#fff;flex-shrink:0">${s.index+1}</div><div style="font-size:${fs}px;color:${hasImg?tc:'#1a1a1a'};line-height:1.35;margin-bottom:16px">${s.line}</div><div style="width:18px;height:1px;background:${hasImg?'rgba(255,255,255,.3)':c.bg};margin-bottom:10px"></div><div style="font-size:10px;color:${hasImg?'rgba(255,255,255,.45)':'#aaa'}">${s.topic}${s.brand?' · '+s.brand:''}</div></div></div>`,
+    quote:`<div style="width:100%;height:100%;position:relative;overflow:hidden;background:${hasImg?'#111':c.bg}">${imgBg}${ovHtml}<div style="position:absolute;${ps};display:flex;flex-direction:column"><div style="font-size:72px;color:${c.accent};line-height:.6;margin-bottom:8px;opacity:.7;font-family:Georgia,serif">"</div><div style="font-size:${Math.min(fs,26)}px;color:${hasImg?tc:'#fff'};line-height:1.5;margin-bottom:18px;font-weight:300">${s.line}</div><div style="width:18px;height:1px;background:${c.accent};opacity:.6;margin-bottom:8px"></div><div style="font-size:10px;color:${c.accent};opacity:.7">${s.topic}${s.brand?' — '+s.brand:''} · ${num}</div></div></div>`,
+  };
+  return tpls[tpl]||tpls.minimal;
+}
+
+async function aiGenerate(){
+  const topic=document.getElementById('topic').value.trim();
+  if(!topic)return;
+  const btn=document.getElementById('aibtn');
+  const st=document.getElementById('aiSt');
+  btn.disabled=true;
+  btn.innerHTML=`<div class="spin"></div>${{ko:'생성 중...',ja:'生成中...',en:'Generating...'}[lang]}`;
+  st.className='status loading';st.textContent='...';
+  try{
+    const res=await fetch('/api/generate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({topic,lang})
+    });
+    const d=await res.json();
+    if(d.text){
+      document.getElementById('content').value=d.text;
+      st.className='status ok';
+      st.textContent={ko:'AI 문구 생성 완료! 생성 버튼을 누르세요.',ja:'AI生成完了！生成ボタンを押してください。',en:'Done! Press Generate.'}[lang];
+    }else throw new Error(d.error||'empty');
+  }catch(e){
+    st.className='status err';
+    st.textContent={ko:'AI 오류가 발생했습니다.',ja:'AIエラーが発生しました。',en:'AI error occurred.'}[lang];
+  }
+  btn.disabled=false;
+  btn.textContent={ko:'AI 문구 자동 생성',ja:'AIで自動生成',en:'Auto-generate with AI'}[lang];
+}
+
+function exportHTML(){
+  if(!slides.length)return;
+  const c=COLORS[curColor];
+  let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#111;display:flex;flex-wrap:wrap;gap:20px;padding:32px;justify-content:center;font-family:'DM Sans','Noto Sans KR',sans-serif}.card{width:480px;height:480px;border-radius:16px;overflow:hidden;flex-shrink:0}</style></head><body>\n`;
+  slides.forEach(s=>{html+=`<div class="card">${buildSlideHTML(s,c,curTpl,curOv,curPos,fontSize)}</div>\n`;});
+  html+=`</body></html>`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));a.download='card_news.html';a.click();
+  document.getElementById('dlSt').className='status ok';
+  document.getElementById('dlSt').textContent={ko:'HTML 저장 완료',ja:'HTML保存完了',en:'HTML saved'}[lang];
+}
+
+async function exportAllPNG(){
+  if(!slides.length){alert({ko:'먼저 카드뉴스를 생성해주세요',ja:'先に生成してください',en:'Please generate first'}[lang]);return;}
+  const btn=document.getElementById('expPngBtn');
+  const st=document.getElementById('dlSt');
+  btn.disabled=true;
+  const c=COLORS[curColor];
+  const off=document.createElement('div');
+  off.style.cssText='position:fixed;left:-9999px;top:0;width:600px;height:600px;overflow:hidden;z-index:-1;background:#111';
+  document.body.appendChild(off);
+  for(let i=0;i<slides.length;i++){
+    st.className='status loading';
+    st.textContent=`${i+1}/${slides.length}...`;
+    off.innerHTML=buildSlideHTML(slides[i],c,curTpl,curOv,curPos,fontSize);
+    await new Promise(r=>setTimeout(r,300));
+    try{
+      const canvas=await html2canvas(off,{width:600,height:600,scale:2,useCORS:true,allowTaint:true,backgroundColor:'#111',logging:false});
+      const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=`slide_${String(i+1).padStart(2,'0')}.png`;a.click();
+      await new Promise(r=>setTimeout(r,500));
+    }catch(e){console.error(e);}
+  }
+  document.body.removeChild(off);
+  btn.disabled=false;
+  st.className='status ok';
+  st.textContent={ko:'PNG 저장 완료!',ja:'PNG保存完了！',en:'PNG saved!'}[lang];
+}
+
+document.getElementById('topic').oninput=()=>{if(slides.length){slides.forEach(s=>s.topic=document.getElementById('topic').value);renderSlide();}};
+document.getElementById('brand').oninput=()=>{if(slides.length){slides.forEach(s=>s.brand=document.getElementById('brand').value);renderSlide();}};
+
+initColors();rebuildAll();renderSlide();
+</script>
+</body>
+</html>
